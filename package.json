@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "prisma": "prisma"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.7",
