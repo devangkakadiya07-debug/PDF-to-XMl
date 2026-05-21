@@ -69,6 +69,7 @@ export async function revokeKey(id: string) {
 }
 
 export async function getUsage() {
+  // Next.js 16 currently exposes noStore via unstable_noStore.
   noStore();
 
   const userId = await requireUserId();

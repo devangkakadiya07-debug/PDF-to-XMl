@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'PDF-to-XML API',
+  title: 'EN16931 UBL XML API',
   description: 'EN16931 UBL 2.1 generator API for Peppol and XRechnung',
 };
 

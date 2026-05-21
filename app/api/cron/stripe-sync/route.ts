@@ -30,8 +30,9 @@ export async function POST(req: Request) {
     if (!user.stripeSubscriptionItemId) continue;
     const usage = await getMonthlyUsage(user.id, year, month);
 
+    const quantity = usage.billableCalls;
     const body = new URLSearchParams({
-      quantity: String(Math.abs(usage.billableCalls)),
+      quantity: String(quantity),
       action: 'set',
       timestamp: String(Math.floor(now.getTime() / 1000)),
     });

@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 
 export function hashApiKey(key: string) {
-  return crypto.createHash('sha256').update(key).digest('hex');
+  const pepper = process.env.API_KEY_HASH_SECRET ?? 'local-dev-pepper';
+  return crypto.pbkdf2Sync(key, pepper, 100_000, 32, 'sha256').toString('hex');
 }
 
 export function maskApiKey(key: string) {

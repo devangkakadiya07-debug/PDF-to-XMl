@@ -14,6 +14,7 @@ API-first EN 16931 UBL 2.1 generator with Peppol BIS Billing 3.0 and XRechnung s
 ## Environment
 
 Copy `.env.example` to `.env` and fill values.
+Set `API_KEY_HASH_SECRET` to a strong random value for API key hash peppering.
 
 ## Install
 
