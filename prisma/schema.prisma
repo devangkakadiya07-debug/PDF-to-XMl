@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ApiKeyEnvironment {
+  TEST
+  LIVE
+}
+
+model User {
+  id                       String          @id
+  email                    String          @unique
+  name                     String?
+  stripeCustomerId         String?         @unique
+  stripeSubscriptionItemId String?         @unique
+  monthlyCallLimit         Int             @default(2000)
+  apiKeys                  ApiKey[]
+  requestLogs              ApiRequestLog[]
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+}
+
+model ApiKey {
+  id          String             @id @default(cuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyHash     String             @unique
+  maskedKey   String
+  environment ApiKeyEnvironment
+  createdAt   DateTime           @default(now())
+  revokedAt   DateTime?
+  requestLogs ApiRequestLog[]
+}
+
+model ApiRequestLog {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKeyId     String?
+  apiKey       ApiKey?   @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+  endpoint     String
+  profile      String
+  success      Boolean
+  billable     Boolean   @default(true)
+  requestSize  Int?
+  responseSize Int?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([billable, success, createdAt])
+}
+
+model StripeEvent {
+  id        String   @id
+  createdAt DateTime @default(now())
+}
