@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db/prisma';
 
 export default async function DashboardPage() {
   // 1. Get the logged-in user's Clerk ID
-  const { userId } = auth();
+  const { userId } = await auth();
 
   let isSubscribed = false;
 
