@@ -22,13 +22,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="flex w-full flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">Developer Dashboard</h1>
-        <p className="mt-2 text-sm text-zinc-600">Manage API keys, usage, and subscription.</p>
-      </div>
-
-      <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <section className="flex w-full flex-col gap-6">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-sm font-semibold text-zinc-900">Subscription Status</h2>
@@ -47,7 +42,7 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
   );
 }
