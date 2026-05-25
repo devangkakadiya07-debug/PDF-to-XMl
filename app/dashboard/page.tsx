@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import UpgradeButton from '@/components/UpgradeButton';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
@@ -23,27 +22,32 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-6">
-      <h1 className="text-2xl font-semibold">Developer Dashboard</h1>
-      <p className="mt-2 text-sm text-zinc-600">Manage API keys, usage, and subscription.</p>
-      
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link className="rounded border px-4 py-2" href="/dashboard/keys">
-          API Keys
-        </Link>
-        <Link className="rounded border px-4 py-2" href="/dashboard/usage">
-          Usage
-        </Link>
-
-        {/* 3. The Conditional Logic */}
-        {!isSubscribed ? (
-          <UpgradeButton />
-        ) : (
-          <div className="rounded border bg-green-50 px-4 py-2 text-green-700 font-medium">
-            Active Pro Plan
-          </div>
-        )}
+    <main className="flex w-full flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-zinc-900">Developer Dashboard</h1>
+        <p className="mt-2 text-sm text-zinc-600">Manage API keys, usage, and subscription.</p>
       </div>
+
+      <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-900">Subscription Status</h2>
+            <p className="mt-2 text-sm text-zinc-600">
+              Keep your plan current for uninterrupted invoice conversion.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {!isSubscribed ? (
+              <UpgradeButton />
+            ) : (
+              <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                Active Pro Plan
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
