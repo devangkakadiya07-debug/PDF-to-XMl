@@ -120,7 +120,7 @@ export default function Home() {
                     <span className="text-zinc-400">: </span>
                     <span className="text-sky-300">1290</span>
                     <span className="text-zinc-400">
-    },
+    {"}"},
 </span>
                     <span className="text-zinc-400">    {'{'}
 </span>
@@ -138,11 +138,11 @@ export default function Home() {
                     <span className="text-zinc-400">: </span>
                     <span className="text-sky-300">310</span>
                     <span className="text-zinc-400">
-    }
+    {"}"}
 </span>
                     <span className="text-zinc-400">  ]
 </span>
-                    <span className="text-zinc-400">}
+                    <span className="text-zinc-400">{"}"}
 </span>
                   </code>
                 </pre>
