@@ -32,7 +32,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-zinc-50 py-16">
+      <section id="features" className="bg-zinc-50 py-16">
         <div className="mx-auto w-full max-w-5xl px-6">
           <h2 className="text-center text-2xl font-semibold text-zinc-900 sm:text-3xl">
             Meet the 2025/2026 EU E-Invoicing Mandates Instantly.
@@ -74,7 +74,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-white py-16">
+      <section id="documentation" className="bg-white py-16">
         <div className="mx-auto w-full max-w-5xl px-6">
           <div className="rounded-2xl border border-zinc-200 bg-zinc-950/95 p-4 shadow-lg">
             <div className="grid gap-4 lg:grid-cols-2">

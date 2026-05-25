@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Hexagon } from 'lucide-react';
 import { auth } from '@clerk/nextjs/server';
+import AuthModalButtons from '@/components/AuthModalButtons';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -57,17 +58,7 @@ export default async function RootLayout({
                     Dashboard
                   </Link>
                 ) : (
-                  <>
-                    <Link
-                      href="/sign-in"
-                      className="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
-                    >
-                      Get Started
-                    </Link>
-                    <Link className="text-zinc-600 transition hover:text-zinc-900" href="/sign-in">
-                      Login
-                    </Link>
-                  </>
+                  <AuthModalButtons />
                 )}
               </div>
             </div>
