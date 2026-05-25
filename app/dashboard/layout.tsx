@@ -15,7 +15,7 @@ export default function DashboardLayout({
           </p>
         </header>
 
-        <div className="sticky top-0 z-10 -mx-6 mt-6 border-b border-zinc-200 bg-zinc-50/95 px-6 backdrop-blur">
+        <div className="sticky top-16 z-10 -mx-6 mt-6 border-b border-zinc-200 bg-zinc-50/95 px-6 backdrop-blur">
           <DashboardTabs />
         </div>
 
