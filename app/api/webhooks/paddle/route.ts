@@ -2,42 +2,22 @@ export const dynamic = 'force-dynamic';
 
 import { Environment, Paddle } from '@paddle/paddle-node-sdk';
 import { NextResponse } from 'next/server';
-
 import { prisma } from '@/lib/db/prisma';
-
-type PaddleWebhookEventData = {
-  id?: string;
-  customerId?: string;
-  subscriptionId?: string;
-  customData?: {
-    userId?: string;
-  };
-  customer?: {
-    id?: string;
-  };
-  nextBilledAt?: string;
-};
 
 type PaddleWebhookEvent = {
   eventType: string;
-  data?: PaddleWebhookEventData;
+  data?: {
+    id?: string;
+    customer_id?: string;
+    subscription_id?: string;
+    customer?: {
+      id?: string;
+      email?: string;
+    };
+  };
 };
 
 const PRO_MONTHLY_CALL_LIMIT = 2000;
-
-function getCustomerId(data: PaddleWebhookEventData) {
-  return data.customerId ?? data.customer?.id;
-}
-
-function getSubscriptionId(data: PaddleWebhookEventData) {
-  if (data.subscriptionId) return data.subscriptionId;
-  if (data.id && data.id.startsWith('sub_')) return data.id;
-  return undefined;
-}
-
-function getUserId(data: PaddleWebhookEventData) {
-  return data.customData?.userId;
-}
 
 export async function POST(req: Request) {
   const signature = req.headers.get('paddle-signature');
@@ -53,7 +33,6 @@ export async function POST(req: Request) {
   }
 
   const rawBody = await req.text();
-
   const paddle = new Paddle(apiKey, { environment: Environment.production });
 
   let eventData: PaddleWebhookEvent;
@@ -68,13 +47,20 @@ export async function POST(req: Request) {
   }
 
   const data = eventData.data ?? {};
-  const customerId = getCustomerId(data);
-  const subscriptionId = getSubscriptionId(data) ?? data.id;
-  const userId = getUserId(data);
+  // Paddle v2 sends customer details inside the data object or nested in a customer object.
+  const email = data.customer?.email; 
+
+  if (!email) {
+    // If there is no email attached, we have no way to identify who bought the plan.
+    return NextResponse.json({ error: 'Missing customer email in webhook payload' }, { status: 400 });
+  }
+
+  const customerId = data.customer_id ?? data.customer?.id;
+  const subscriptionId = data.subscription_id ?? data.id;
 
   const activeUpdate = {
     monthlyCallLimit: PRO_MONTHLY_CALL_LIMIT,
-    ...(customerId ? { stripeCustomerId: customerId } : {}),
+    ...(customerId ? { stripeCustomerId: customerId } : {}), // Reusing existing stripe field names as requested by your schema
     ...(subscriptionId ? { stripeSubscriptionItemId: subscriptionId } : {}),
   };
 
@@ -83,46 +69,29 @@ export async function POST(req: Request) {
     monthlyCallLimit: 0,
   };
 
-  type UserUpdateData = typeof activeUpdate | typeof cancelUpdate;
-
-  const updateByCustomerId = async (updateData: UserUpdateData) => {
-    if (!customerId) return 0;
-    const result = await prisma.user.updateMany({
-      where: { stripeCustomerId: customerId },
-      data: updateData,
-    });
-    return result.count;
-  };
-
-  const updateByUserId = async (updateData: UserUpdateData) => {
-    if (!userId) return;
-    await prisma.user.update({ where: { id: userId }, data: updateData });
-  };
-
-  switch (eventData.eventType) {
-    case 'transaction.completed': {
-      const updatedCount = await updateByCustomerId(activeUpdate);
-      if (updatedCount === 0) {
-        await updateByUserId(activeUpdate);
+  try {
+    switch (eventData.eventType) {
+      case 'transaction.completed':
+      case 'subscription.updated': {
+        await prisma.user.updateMany({
+          where: { email: email },
+          data: activeUpdate,
+        });
+        break;
       }
-      break;
-    }
-    case 'subscription.updated': {
-      const updatedCount = await updateByCustomerId(activeUpdate);
-      if (updatedCount === 0) {
-        await updateByUserId(activeUpdate);
+      case 'subscription.canceled': {
+        await prisma.user.updateMany({
+          where: { email: email },
+          data: cancelUpdate,
+        });
+        break;
       }
-      break;
+      default:
+        break;
     }
-    case 'subscription.canceled': {
-      const updatedCount = await updateByCustomerId(cancelUpdate);
-      if (updatedCount === 0) {
-        await updateByUserId(cancelUpdate);
-      }
-      break;
-    }
-    default:
-      break;
+  } catch (error) {
+    console.error("Database update failed:", error);
+    return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
