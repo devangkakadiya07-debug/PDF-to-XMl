@@ -27,6 +27,17 @@ export async function createKey(environment: 'TEST' | 'LIVE') {
   const userId = await requireUserId();
   await ensureUserRecord(userId);
 
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { stripeSubscriptionItemId: true },
+  });
+
+  const isSubscribed = Boolean(user?.stripeSubscriptionItemId);
+
+  if (environment === 'LIVE' && !isSubscribed) {
+    throw new Error('Unauthorized: Active Pro Plan required to generate live keys.');
+  }
+
   const key = generateApiKey(environment);
   const keyHash = hashApiKey(key);
   const maskedKey = maskApiKey(key);

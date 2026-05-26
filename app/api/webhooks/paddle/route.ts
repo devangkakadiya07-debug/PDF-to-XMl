@@ -14,10 +14,7 @@ type PaddleWebhookEventData = {
   };
   customer?: {
     id?: string;
-    email?: string;
   };
-  customerEmail?: string;
-  email?: string;
   nextBilledAt?: string;
 };
 
@@ -40,40 +37,6 @@ function getSubscriptionId(data: PaddleWebhookEventData) {
 
 function getUserId(data: PaddleWebhookEventData) {
   return data.customData?.userId;
-}
-
-function getEmail(data: PaddleWebhookEventData) {
-  return data.customer?.email ?? data.customerEmail ?? data.email;
-}
-
-async function findUser(data: PaddleWebhookEventData) {
-  const userId = getUserId(data);
-  if (userId) {
-    return prisma.user.findUnique({ where: { id: userId } });
-  }
-
-  const customerId = getCustomerId(data);
-  if (customerId) {
-    const userByCustomerId = await prisma.user.findUnique({
-      where: { stripeCustomerId: customerId },
-    });
-    if (userByCustomerId) return userByCustomerId;
-  }
-
-  const subscriptionId = getSubscriptionId(data);
-  if (subscriptionId) {
-    const userBySubscriptionId = await prisma.user.findUnique({
-      where: { stripeSubscriptionItemId: subscriptionId },
-    });
-    if (userBySubscriptionId) return userBySubscriptionId;
-  }
-
-  const email = getEmail(data);
-  if (email) {
-    return prisma.user.findUnique({ where: { email } });
-  }
-
-  return null;
 }
 
 export async function POST(req: Request) {
@@ -107,45 +70,55 @@ export async function POST(req: Request) {
   const data = eventData.data ?? {};
   const customerId = getCustomerId(data);
   const subscriptionId = getSubscriptionId(data) ?? data.id;
-  const user = await findUser(data);
+  const userId = getUserId(data);
+
+  const activeUpdate = {
+    monthlyCallLimit: PRO_MONTHLY_CALL_LIMIT,
+    ...(customerId ? { stripeCustomerId: customerId } : {}),
+    ...(subscriptionId ? { stripeSubscriptionItemId: subscriptionId } : {}),
+  };
+
+  const cancelUpdate = {
+    stripeSubscriptionItemId: null,
+    monthlyCallLimit: 0,
+  };
+
+  type UserUpdateData = typeof activeUpdate | typeof cancelUpdate;
+
+  const updateByCustomerId = async (updateData: UserUpdateData) => {
+    if (!customerId) return 0;
+    const result = await prisma.user.updateMany({
+      where: { stripeCustomerId: customerId },
+      data: updateData,
+    });
+    return result.count;
+  };
+
+  const updateByUserId = async (updateData: UserUpdateData) => {
+    if (!userId) return;
+    await prisma.user.update({ where: { id: userId }, data: updateData });
+  };
 
   switch (eventData.eventType) {
     case 'transaction.completed': {
-      if (!user) break;
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          monthlyCallLimit: PRO_MONTHLY_CALL_LIMIT,
-          ...(customerId ? { stripeCustomerId: customerId } : {}),
-          ...(subscriptionId ? { stripeSubscriptionItemId: subscriptionId } : {}),
-        },
-      });
+      const updatedCount = await updateByCustomerId(activeUpdate);
+      if (updatedCount === 0) {
+        await updateByUserId(activeUpdate);
+      }
       break;
     }
     case 'subscription.updated': {
-      if (!user) break;
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          monthlyCallLimit: PRO_MONTHLY_CALL_LIMIT,
-          ...(customerId ? { stripeCustomerId: customerId } : {}),
-          ...(subscriptionId ? { stripeSubscriptionItemId: subscriptionId } : {}),
-        },
-      });
+      const updatedCount = await updateByCustomerId(activeUpdate);
+      if (updatedCount === 0) {
+        await updateByUserId(activeUpdate);
+      }
       break;
     }
     case 'subscription.canceled': {
-      if (!user) break;
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          stripeSubscriptionItemId: null,
-          monthlyCallLimit: 0,
-        },
-      });
+      const updatedCount = await updateByCustomerId(cancelUpdate);
+      if (updatedCount === 0) {
+        await updateByUserId(cancelUpdate);
+      }
       break;
     }
     default:
