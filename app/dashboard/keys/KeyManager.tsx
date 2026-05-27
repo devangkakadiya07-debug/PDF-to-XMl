@@ -17,21 +17,27 @@ export default function KeyManager({ initialKeys }: { initialKeys: KeyRow[] }) {
   const [plainKey, setPlainKey] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
 
   const handleCreate = (environment: 'TEST' | 'LIVE') => {
     startTransition(async () => {
-      const created = await createKey(environment);
+      setErrorMessage(null);
+      const result = await createKey(environment);
+      if (result.success === false) {
+        setErrorMessage(result.error);
+        return;
+      }
       setKeys((prev) => [
         {
-          id: created.id,
-          maskedKey: created.maskedKey,
-          environment: created.environment,
-          createdAt: created.createdAt,
+          id: result.id,
+          maskedKey: result.maskedKey,
+          environment: result.environment,
+          createdAt: result.createdAt,
         },
         ...prev,
       ]);
-      setPlainKey(created.key);
+      setPlainKey(result.key);
       setCopied(false);
       setShowModal(true);
       router.refresh();
@@ -96,6 +102,14 @@ export default function KeyManager({ initialKeys }: { initialKeys: KeyRow[] }) {
 
   return (
     <section className="space-y-10">
+      {errorMessage ? (
+        <div
+          className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          {errorMessage}
+        </div>
+      ) : null}
       <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

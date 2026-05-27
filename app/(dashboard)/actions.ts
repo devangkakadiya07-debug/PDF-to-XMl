@@ -35,7 +35,10 @@ export async function createKey(environment: 'TEST' | 'LIVE') {
   const isSubscribed = Boolean(user?.stripeSubscriptionItemId);
 
   if (environment === 'LIVE' && !isSubscribed) {
-    throw new Error('Unauthorized: Active Pro Plan required to generate live keys.');
+    return {
+      success: false,
+      error: 'Upgrade to the Pro plan to generate Live API keys.',
+    };
   }
 
   const key = generateApiKey(environment);
@@ -60,6 +63,7 @@ export async function createKey(environment: 'TEST' | 'LIVE') {
   revalidatePath('/dashboard/keys');
 
   return {
+    success: true,
     id: created.id,
     key,
     maskedKey: created.maskedKey,
