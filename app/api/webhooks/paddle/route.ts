@@ -10,9 +10,9 @@ type PaddleWebhookEvent = {
     id?: string;
     customer_id?: string;
     subscription_id?: string;
-    customer?: {
-      id?: string;
+    custom_data?: {
       email?: string;
+      userId?: string;
     };
   };
 };
@@ -47,20 +47,21 @@ export async function POST(req: Request) {
   }
 
   const data = eventData.data ?? {};
-  // Paddle v2 sends customer details inside the data object or nested in a customer object.
-  const email = data.customer?.email; 
+  
+  // FIXED LOGIC: Extract email from custom_data
+  const email = data.custom_data?.email; 
 
   if (!email) {
-    // If there is no email attached, we have no way to identify who bought the plan.
+    console.error("Missing custom_data.email in webhook payload. Frontend did not send it.");
     return NextResponse.json({ error: 'Missing customer email in webhook payload' }, { status: 400 });
   }
 
-  const customerId = data.customer_id ?? data.customer?.id;
+  const customerId = data.customer_id ?? data.id;
   const subscriptionId = data.subscription_id ?? data.id;
 
   const activeUpdate = {
     monthlyCallLimit: PRO_MONTHLY_CALL_LIMIT,
-    ...(customerId ? { stripeCustomerId: customerId } : {}), // Reusing existing stripe field names as requested by your schema
+    ...(customerId ? { stripeCustomerId: customerId } : {}), 
     ...(subscriptionId ? { stripeSubscriptionItemId: subscriptionId } : {}),
   };
 
@@ -72,6 +73,7 @@ export async function POST(req: Request) {
   try {
     switch (eventData.eventType) {
       case 'transaction.completed':
+      case 'subscription.activated':
       case 'subscription.updated': {
         await prisma.user.updateMany({
           where: { email: email },
