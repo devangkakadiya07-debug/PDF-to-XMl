@@ -48,16 +48,19 @@ export async function POST(req: Request) {
 
   const data = eventData.data ?? {};
   
-  // FIXED LOGIC: Extract email from custom_data
-  const email = data.custom_data?.email; 
+  // 1. Check all possible formatting variations from the SDK
+  // 2. Cast as 'any' to bypass strict TS typing for raw payload checks
+  const customData = (data as any).customData || (data as any).custom_data || {};
+  const email = customData?.email || (data as any).customer?.email; 
 
   if (!email) {
-    console.error("Missing custom_data.email in webhook payload. Frontend did not send it.");
-    return NextResponse.json({ error: 'Missing customer email in webhook payload' }, { status: 400 });
+    console.log("Ignored event missing email to drain Paddle retry queue.");
+    // RETURN 200 SO PADDLE STOPS RETRYING THE BROKEN EVENTS
+    return NextResponse.json({ received: true, note: "Ignored missing email" }, { status: 200 });
   }
 
-  const customerId = data.customer_id ?? data.id;
-  const subscriptionId = data.subscription_id ?? data.id;
+  const customerId = data.customer_id ?? (data as any).id;
+  const subscriptionId = data.subscription_id ?? (data as any).id;
 
   const activeUpdate = {
     monthlyCallLimit: PRO_MONTHLY_CALL_LIMIT,
