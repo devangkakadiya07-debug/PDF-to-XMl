@@ -25,19 +25,19 @@ export default function KeyManager({ initialKeys }: { initialKeys: KeyRow[] }) {
       setErrorMessage(null);
       const result = await createKey(environment);
       if (result.success === false) {
-        setErrorMessage(result.error);
+        setErrorMessage(result.error || "An error occurred. Please try again.");
         return;
       }
       setKeys((prev) => [
         {
-          id: result.id,
-          maskedKey: result.maskedKey,
-          environment: result.environment,
-          createdAt: result.createdAt,
+          id: result.id as string,
+          maskedKey: result.maskedKey as string,
+          environment: result.environment as any,
+          createdAt: result.createdAt as string,
         },
         ...prev,
       ]);
-      setPlainKey(result.key);
+      setPlainKey(result.key || null);
       setCopied(false);
       setShowModal(true);
       router.refresh();
