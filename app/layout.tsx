@@ -65,7 +65,34 @@ export default async function RootLayout({
                 </div>
               </div>
             </header>
-            {children}
+            <div className="flex-1">{children}</div>
+            <footer className="border-t border-zinc-200/70 bg-white/80">
+              <div className="mx-auto w-full max-w-6xl px-6 py-6">
+                <div className="flex flex-col items-center gap-3 text-center text-sm text-zinc-500">
+                  <p>© 2026 UBL API. All rights reserved.</p>
+                  <div className="flex items-center gap-4 text-xs font-medium">
+                    <Link
+                      href="/terms"
+                      className="transition-colors hover:text-zinc-900"
+                    >
+                      Terms
+                    </Link>
+                    <Link
+                      href="/refund"
+                      className="transition-colors hover:text-zinc-900"
+                    >
+                      Refund Policy
+                    </Link>
+                    <Link
+                      href="/privacy"
+                      className="transition-colors hover:text-zinc-900"
+                    >
+                      Privacy
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </footer>
           </div>
         </body>
       </html>

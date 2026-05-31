@@ -1,8 +1,10 @@
 export const dynamic = 'force-dynamic';
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getMonthlyUsage } from '@/lib/billing/usageAggregation';
-export async function POST(req: Request) {
+
+async function postHandler(req: Request) {
   const expected = process.env.CRON_SECRET;
   const auth = req.headers.get('authorization');
 
@@ -60,3 +62,8 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ syncedUsers: users.length });
 }
+
+export const POST = Sentry.wrapRouteHandlerWithSentry(postHandler, {
+  method: 'POST',
+  parameterizedRoute: '/api/cron/stripe-sync',
+});

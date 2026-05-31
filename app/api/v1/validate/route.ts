@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic';
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 
-export async function POST(req: Request) {
+async function postHandler(req: Request) {
   const validatorUrl = process.env.EN16931_VALIDATOR_URL;
   if (!validatorUrl) {
     return NextResponse.json({ error: 'Validator URL not configured' }, { status: 500 });
@@ -24,3 +25,8 @@ export async function POST(req: Request) {
     },
   });
 }
+
+export const POST = Sentry.wrapRouteHandlerWithSentry(postHandler, {
+  method: 'POST',
+  parameterizedRoute: '/api/v1/validate',
+});

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { Environment, Paddle } from '@paddle/paddle-node-sdk';
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 
@@ -19,7 +20,7 @@ type PaddleWebhookEvent = {
 
 const PRO_MONTHLY_CALL_LIMIT = 2000;
 
-export async function POST(req: Request) {
+async function postHandler(req: Request) {
   const signature = req.headers.get('paddle-signature');
   const webhookSecret = process.env.PADDLE_WEBHOOK_SECRET;
   const apiKey = process.env.PADDLE_API_KEY;
@@ -101,3 +102,8 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ received: true }, { status: 200 });
 }
+
+export const POST = Sentry.wrapRouteHandlerWithSentry(postHandler, {
+  method: 'POST',
+  parameterizedRoute: '/api/webhooks/paddle',
+});

@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import { ApiKeyEnvironment } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
@@ -27,7 +28,7 @@ function cloneForTest(invoice: InvoicePayload): InvoicePayload {
   };
 }
 
-export async function POST(req: Request) {
+async function postHandler(req: Request) {
   const token = getBearerToken(req.headers.get('authorization'));
 
   if (!token) {
@@ -119,3 +120,8 @@ export async function POST(req: Request) {
     });
   }
 }
+
+export const POST = Sentry.wrapRouteHandlerWithSentry(postHandler, {
+  method: 'POST',
+  parameterizedRoute: '/api/v1/convert',
+});

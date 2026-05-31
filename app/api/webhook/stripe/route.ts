@@ -1,10 +1,11 @@
 export const dynamic = 'force-dynamic';
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/db/prisma';
 import { getStripeClient } from '@/lib/stripe/client';
 
-export async function POST(req: Request) {
+async function postHandler(req: Request) {
   const stripe = getStripeClient();
   const signature = req.headers.get('stripe-signature');
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -80,3 +81,8 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ received: true });
 }
+
+export const POST = Sentry.wrapRouteHandlerWithSentry(postHandler, {
+  method: 'POST',
+  parameterizedRoute: '/api/webhook/stripe',
+});
