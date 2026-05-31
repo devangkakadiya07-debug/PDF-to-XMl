@@ -4,6 +4,8 @@ import { Hexagon } from 'lucide-react';
 import { auth } from '@clerk/nextjs/server';
 import { ClerkProvider } from '@clerk/nextjs';
 import AuthModalButtons from '@/components/AuthModalButtons';
+import NavUserProfile from '@/components/NavUserProfile';
+import { ibmPlexMono, ibmPlexSans } from '@/app/fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,12 +19,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const { userId } = await auth();
-  const isLoggedIn = Boolean(userId);
 
   return (
     <ClerkProvider>
       <html lang="en" className="h-full antialiased">
-        <body className="min-h-full bg-gradient-to-b from-white via-slate-50 to-white text-zinc-900">
+        <body
+          className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} min-h-full bg-gradient-to-b from-white via-slate-50 to-white text-zinc-900`}
+        >
           <div className="flex min-h-full flex-col">
             <header className="sticky top-0 z-50 border-b border-zinc-200/60 bg-gradient-to-b from-white/85 via-white/75 to-white/65 backdrop-blur supports-[backdrop-filter]:bg-white/70">
               <div className="nav-fade mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
@@ -52,13 +55,8 @@ export default async function RootLayout({
                   </nav>
                 </div>
                 <div className="nav-stagger flex items-center gap-3 text-sm">
-                  {isLoggedIn ? (
-                    <Link
-                      href="/dashboard"
-                      className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-900"
-                    >
-                      Dashboard
-                    </Link>
+                  {userId ? (
+                    <NavUserProfile userId={userId} />
                   ) : (
                     <AuthModalButtons />
                   )}

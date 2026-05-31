@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type CodePanelProps = {
   title: string;
@@ -67,10 +67,10 @@ function CheckIcon({ className }: { className?: string }) {
 export default function CodePanel({ title, language, code }: CodePanelProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = useCallback(async () => {
+  const handleCopy = async () => {
     const ok = await copyText(code);
     setCopied(ok);
-  }, [code]);
+  };
 
   useEffect(() => {
     if (!copied) return undefined;
@@ -79,10 +79,10 @@ export default function CodePanel({ title, language, code }: CodePanelProps) {
   }, [copied]);
 
   return (
-    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950 shadow-sm">
-      <div className="flex items-center justify-between border-b border-zinc-800/80 px-4 py-3">
+    <div className="min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-950 shadow-sm">
+      <div className="flex items-center justify-between gap-3 border-b border-zinc-800/80 px-4 py-3">
         <p className="text-xs font-semibold text-zinc-300">{title}</p>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <span className="rounded-full border border-zinc-800/80 bg-zinc-900 px-2 py-1 text-[10px] font-semibold text-zinc-400">
             {language}
           </span>
@@ -101,8 +101,8 @@ export default function CodePanel({ title, language, code }: CodePanelProps) {
           </button>
         </div>
       </div>
-      <pre className="overflow-x-auto px-4 py-5 text-[12px] leading-relaxed text-zinc-100">
-        <code className="font-mono whitespace-pre">{code}</code>
+      <pre className="min-w-0 max-w-full overflow-x-auto px-4 py-5 text-[12px] leading-relaxed text-zinc-100">
+        <code className="block w-max min-w-full whitespace-pre font-mono">{code}</code>
       </pre>
     </div>
   );
