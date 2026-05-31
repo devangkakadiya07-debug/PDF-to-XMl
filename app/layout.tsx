@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Hexagon } from 'lucide-react';
 import { auth } from '@clerk/nextjs/server';
 import { ClerkProvider } from '@clerk/nextjs';
-import AuthModalButtons from '@/components/AuthModalButtons';
+import DeferredAuthModalButtons from '@/components/DeferredAuthModalButtons';
 import NavUserProfile from '@/components/NavUserProfile';
 import { ibmPlexMono, ibmPlexSans } from '@/app/fonts';
 import './globals.css';
@@ -58,7 +58,7 @@ export default async function RootLayout({
                   {userId ? (
                     <NavUserProfile userId={userId} />
                   ) : (
-                    <AuthModalButtons />
+                    <DeferredAuthModalButtons />
                   )}
                 </div>
               </div>

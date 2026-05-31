@@ -5,14 +5,16 @@ import { BarChart3, CreditCard, LayoutDashboard } from 'lucide-react';
 
 type NavUserMenuProps = {
   billableCalls: number;
-  monthlyCallLimit: number;
+  monthlyCallLimit: number | null;
 };
 
 export default function NavUserMenu({
   billableCalls,
   monthlyCallLimit,
 }: NavUserMenuProps) {
-  const usageLabel = `Usage: ${billableCalls.toLocaleString()} / ${monthlyCallLimit.toLocaleString()}`;
+  const usageLabel = monthlyCallLimit === null
+    ? 'Usage unavailable until your email is verified'
+    : `Usage: ${billableCalls.toLocaleString()} / ${monthlyCallLimit.toLocaleString()}`;
 
   return (
     <div className="flex items-center gap-2">
@@ -31,7 +33,7 @@ export default function NavUserMenu({
               labelIcon={<BarChart3 className="h-4 w-4" />}
             />
             <UserButton.Link
-              href="/pricing"
+              href="/api/billing/portal"
               label="Manage Billing"
               labelIcon={<CreditCard className="h-4 w-4" />}
             />

@@ -17,15 +17,17 @@ export default async function NavUserProfile({ userId }: NavUserProfileProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="hidden items-center gap-2 rounded-full border border-zinc-200/80 bg-white/90 px-3 py-2 text-xs text-zinc-500 shadow-sm sm:flex">
-        <span className="uppercase tracking-[0.18em]">Usage</span>
-        <span className="font-semibold tracking-normal text-zinc-900">
-          {billableCalls.toLocaleString()} / {user.monthlyCallLimit.toLocaleString()}
-        </span>
-      </div>
+      {user ? (
+        <div className="hidden items-center gap-2 rounded-full border border-zinc-200/80 bg-white/90 px-3 py-2 text-xs text-zinc-500 shadow-sm sm:flex">
+          <span className="uppercase tracking-[0.18em]">Usage</span>
+          <span className="font-semibold tracking-normal text-zinc-900">
+            {billableCalls.toLocaleString()} / {user.monthlyCallLimit.toLocaleString()}
+          </span>
+        </div>
+      ) : null}
       <NavUserMenu
         billableCalls={billableCalls}
-        monthlyCallLimit={user.monthlyCallLimit}
+        monthlyCallLimit={user?.monthlyCallLimit ?? null}
       />
     </div>
   );

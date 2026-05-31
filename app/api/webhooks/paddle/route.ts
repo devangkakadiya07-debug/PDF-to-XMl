@@ -1,9 +1,9 @@
 export const dynamic = 'force-dynamic';
 
-import { Environment, Paddle } from '@paddle/paddle-node-sdk';
 import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { getPaddleServerClient } from '@/lib/paddle/server';
 
 type PaddleWebhookEvent = {
   eventType: string;
@@ -23,18 +23,19 @@ const PRO_MONTHLY_CALL_LIMIT = 2000;
 async function postHandler(req: Request) {
   const signature = req.headers.get('paddle-signature');
   const webhookSecret = process.env.PADDLE_WEBHOOK_SECRET;
-  const apiKey = process.env.PADDLE_API_KEY;
 
   if (!signature || !webhookSecret) {
     return NextResponse.json({ error: 'Missing Paddle webhook signature' }, { status: 400 });
   }
 
-  if (!apiKey) {
+  const rawBody = await req.text();
+  let paddle;
+
+  try {
+    paddle = getPaddleServerClient();
+  } catch {
     return NextResponse.json({ error: 'Missing Paddle API key' }, { status: 500 });
   }
-
-  const rawBody = await req.text();
-  const paddle = new Paddle(apiKey, { environment: Environment.production });
 
   let eventData: PaddleWebhookEvent;
   try {

@@ -9,7 +9,11 @@ import { getMonthlyUsage } from '@/lib/billing/usageAggregation';
 
 export async function getKeys() {
   const userId = await requireUserId();
-  await ensureUserRecord(userId);
+  const user = await ensureUserRecord(userId);
+
+  if (!user) {
+    return [];
+  }
 
   return prisma.apiKey.findMany({
     where: { userId, revokedAt: null },
@@ -25,7 +29,14 @@ export async function getKeys() {
 
 export async function createKey(environment: 'TEST' | 'LIVE') {
   const userId = await requireUserId();
-  await ensureUserRecord(userId);
+  const syncedUser = await ensureUserRecord(userId);
+
+  if (!syncedUser) {
+    return {
+      success: false,
+      error: 'Verify your email address before generating API keys.',
+    };
+  }
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -89,6 +100,15 @@ export async function getUsage() {
 
   const userId = await requireUserId();
   const user = await ensureUserRecord(userId);
+
+  if (!user) {
+    return {
+      year: new Date().getUTCFullYear(),
+      month: new Date().getUTCMonth() + 1,
+      billableCalls: 0,
+      monthlyCallLimit: 0,
+    };
+  }
 
   const now = new Date();
   const year = now.getUTCFullYear();

@@ -9,6 +9,10 @@ export async function createCheckoutSession() {
   const userId = await requireUserId();
   const user = await ensureUserRecord(userId);
 
+  if (!user) {
+    throw new Error('Verify your email address before creating a checkout session');
+  }
+
   if (user.stripeSubscriptionItemId) {
     throw new Error('You are already subscribed');
   }
